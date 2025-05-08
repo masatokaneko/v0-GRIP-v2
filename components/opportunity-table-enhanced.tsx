@@ -56,6 +56,7 @@ export function OpportunityTableEnhanced() {
     }
   })
 
+  // テーブルヘッダーを修正
   const columns: ColumnDef<Opportunity>[] = [
     {
       accessorKey: "name",
@@ -64,7 +65,7 @@ export function OpportunityTableEnhanced() {
     },
     {
       accessorKey: "partner",
-      header: "パートナー",
+      header: "クライアント",
       cell: ({ row }) => {
         const partnerColor = row.original.partnerColor
         return (

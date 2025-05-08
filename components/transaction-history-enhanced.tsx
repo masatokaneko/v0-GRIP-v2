@@ -114,7 +114,7 @@ export function TransactionHistoryEnhanced() {
     },
     {
       accessorKey: "partnerCompany",
-      header: "パートナー企業",
+      header: "クライアント企業",
       cell: ({ row }) => {
         const partnerCompanyColor = row.original.partnerCompanyColor
         return (
