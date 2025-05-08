@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, Calendar, Users, FileText, ArrowRight, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getMeetingsByOpportunityId, getDocumentsByOpportunityId, getStageLabel } from "@/lib/data"
 
 interface OpportunityDetailProps {
   opportunity: {
@@ -32,68 +33,18 @@ interface OpportunityDetailProps {
 
 export function OpportunityDetail({ opportunity, onClose }: OpportunityDetailProps) {
   const [activeTab, setActiveTab] = useState("overview")
+  const [relatedMeetings, setRelatedMeetings] = useState<any[]>([])
+  const [relatedDocuments, setRelatedDocuments] = useState<any[]>([])
 
-  // Mock data for meetings related to this opportunity
-  const relatedMeetings = [
-    {
-      id: "MTG001",
-      date: "2025年4月15日",
-      title: "初回提案ミーティング",
-      participants: ["佐藤 一郎", "田中 次郎", "日立 太郎"],
-      location: "オンライン",
-      summary: "グローバルサプライチェーン構築に関する初回提案。日立側から技術的な質問が多く出された。",
-    },
-    {
-      id: "MTG002",
-      date: "2025年4月28日",
-      title: "技術詳細レビュー",
-      participants: ["山田 三郎", "渡辺 六郎", "日立 花子", "日立 三郎"],
-      location: "日立本社",
-      summary: "技術的な詳細についてのレビュー。セキュリティ面での懸念点が指摘された。",
-    },
-    {
-      id: "MTG003",
-      date: "2025年5月10日",
-      title: "予算協議",
-      participants: ["佐藤 一郎", "鈴木 四郎", "日立 太郎"],
-      location: "三菱商事本社",
-      summary: "予算の詳細について協議。初期フェーズの範囲を縮小し、段階的に展開する方針で合意。",
-    },
-  ]
-
-  // Mock data for documents related to this opportunity
-  const relatedDocuments = [
-    {
-      id: "DOC001",
-      name: "提案書_v1.0.pdf",
-      type: "提案書",
-      uploadedBy: "佐藤 一郎",
-      uploadedAt: "2025年4月10日",
-    },
-    {
-      id: "DOC002",
-      name: "技術仕様書.xlsx",
-      type: "技術資料",
-      uploadedBy: "山田 三郎",
-      uploadedAt: "2025年4月25日",
-    },
-    {
-      id: "DOC003",
-      name: "予算見積り_改訂版.pdf",
-      type: "見積書",
-      uploadedBy: "鈴木 四郎",
-      uploadedAt: "2025年5月8日",
-    },
-  ]
-
-  const getStageLabel = (stagePct: number) => {
-    if (stagePct < 30) return "初期段階"
-    if (stagePct < 60) return "中間段階"
-    return "最終段階"
-  }
+  useEffect(() => {
+    // 実際のアプリケーションではAPIから取得するが、ここではモックデータを使用
+    setRelatedMeetings(getMeetingsByOpportunityId(opportunity.id))
+    setRelatedDocuments(getDocumentsByOpportunityId(opportunity.id))
+  }, [opportunity.id])
 
   // Default values for optional fields
   const {
+    id,
     name,
     partner,
     partnerColor,
@@ -101,14 +52,14 @@ export function OpportunityDetail({ opportunity, onClose }: OpportunityDetailPro
     stagePct,
     stageColor,
     amount,
-    description = "グローバルサプライチェーンの構築プロジェクト。日立製作所のグローバル拠点における物流最適化と在庫管理の効率化を目的としている。AIを活用した需要予測と自動発注システムの導入も含む。",
+    description = "商談の詳細情報がありません。",
     ourCompany = "三菱商事",
     ourCompanyColor = "#EF4444",
     createdAt = "2025年3月15日",
     updatedAt = "2025年5月10日",
     assignedTo = "佐藤 一郎",
-    nextAction = "最終提案書の提出",
-    nextActionDate = "2025年5月25日",
+    nextAction = "次のアクションが設定されていません",
+    nextActionDate = "未設定",
   } = opportunity
 
   return (
@@ -238,62 +189,70 @@ export function OpportunityDetail({ opportunity, onClose }: OpportunityDetailPro
 
             <TabsContent value="meetings">
               <div className="space-y-4">
-                {relatedMeetings.map((meeting) => (
-                  <Card key={meeting.id}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start">
-                        <div className="mr-4">
-                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                            <MessageSquare className="h-5 w-5 text-green-600" />
+                {relatedMeetings.length > 0 ? (
+                  relatedMeetings.map((meeting) => (
+                    <Card key={meeting.id}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-start">
+                          <div className="mr-4">
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                              <MessageSquare className="h-5 w-5 text-green-600" />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-medium">{meeting.title}</h3>
+                              <span className="text-sm text-gray-500">{meeting.date}</span>
+                            </div>
+                            <div className="mb-2">
+                              <span className="text-sm text-gray-500">参加者: </span>
+                              <span className="text-sm">{meeting.participants.join(", ")}</span>
+                            </div>
+                            <div className="mb-2">
+                              <span className="text-sm text-gray-500">場所: </span>
+                              <span className="text-sm">{meeting.location}</span>
+                            </div>
+                            <Separator className="my-2" />
+                            <p className="text-sm text-gray-700">{meeting.summary}</p>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-medium">{meeting.title}</h3>
-                            <span className="text-sm text-gray-500">{meeting.date}</span>
-                          </div>
-                          <div className="mb-2">
-                            <span className="text-sm text-gray-500">参加者: </span>
-                            <span className="text-sm">{meeting.participants.join(", ")}</span>
-                          </div>
-                          <div className="mb-2">
-                            <span className="text-sm text-gray-500">場所: </span>
-                            <span className="text-sm">{meeting.location}</span>
-                          </div>
-                          <Separator className="my-2" />
-                          <p className="text-sm text-gray-700">{meeting.summary}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">関連する面談記録がありません</div>
+                )}
               </div>
             </TabsContent>
 
             <TabsContent value="documents">
               <div className="space-y-4">
-                {relatedDocuments.map((doc) => (
-                  <Card key={doc.id} className="hover:bg-gray-50 cursor-pointer">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center">
-                        <div className="mr-4">
-                          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                            <FileText className="h-5 w-5 text-amber-600" />
+                {relatedDocuments.length > 0 ? (
+                  relatedDocuments.map((doc) => (
+                    <Card key={doc.id} className="hover:bg-gray-50 cursor-pointer">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center">
+                          <div className="mr-4">
+                            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                              <FileText className="h-5 w-5 text-amber-600" />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center">
+                              <h3 className="font-medium">{doc.name}</h3>
+                              <Badge variant="outline">{doc.type}</Badge>
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">
+                              {doc.uploadedBy} • {doc.uploadedAt}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center">
-                            <h3 className="font-medium">{doc.name}</h3>
-                            <Badge variant="outline">{doc.type}</Badge>
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {doc.uploadedBy} • {doc.uploadedAt}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">関連する文書がありません</div>
+                )}
               </div>
             </TabsContent>
           </Tabs>

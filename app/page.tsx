@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { OwnerHierarchy } from "@/components/owner-hierarchy"
 import { AccountExecutives } from "@/components/account-executives"
@@ -11,33 +11,50 @@ import { GlobalSearch } from "@/components/global-search"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Download, Filter } from "lucide-react"
+import { partnerGroups } from "@/lib/data"
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("owners")
   const [selectedGroup, setSelectedGroup] = useState("日立グループ")
+  const [selectedGroupId, setSelectedGroupId] = useState("HTG001")
   const [selectedIndustry, setSelectedIndustry] = useState("製造業・電子機器")
+
+  // グループが変更されたときに業種も更新
+  useEffect(() => {
+    const group = partnerGroups.find((g) => g.id === selectedGroupId)
+    if (group) {
+      setSelectedIndustry(group.industry)
+    }
+  }, [selectedGroupId])
 
   // Function to render the active content based on the selected tab
   const renderActiveContent = () => {
     switch (activeTab) {
       case "owners":
-        return <OwnerHierarchy />
+        return <OwnerHierarchy selectedGroupId={selectedGroupId} />
       case "executives":
-        return <AccountExecutives />
+        return <AccountExecutives selectedGroupId={selectedGroupId} />
       case "opportunities":
-        return <OpportunityTable />
+        return <OpportunityTable selectedGroupId={selectedGroupId} />
       case "transactions":
-        return <TransactionHistory />
+        return <TransactionHistory selectedGroupId={selectedGroupId} />
       case "summary":
-        return <ExecutiveSummary />
+        return <ExecutiveSummary selectedGroupId={selectedGroupId} />
       default:
-        return <OwnerHierarchy />
+        return <OwnerHierarchy selectedGroupId={selectedGroupId} />
     }
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        selectedGroup={selectedGroup}
+        setSelectedGroup={setSelectedGroup}
+        selectedGroupId={selectedGroupId}
+        setSelectedGroupId={setSelectedGroupId}
+      />
       <main className="flex-1 overflow-auto p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>

@@ -1,73 +1,62 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { OpportunityDetail } from "@/components/opportunity-detail"
+import { opportunities, getCompanyById, getStageColor, partnerCompanies } from "@/lib/data"
 
-export function OpportunityTable() {
+interface OpportunityTableProps {
+  selectedGroupId: string
+}
+
+export function OpportunityTable({ selectedGroupId }: OpportunityTableProps) {
   const [selectedOpportunity, setSelectedOpportunity] = useState<any | null>(null)
+  const [groupOpportunities, setGroupOpportunities] = useState<any[]>([])
 
-  const opportunities = [
-    {
-      id: "OPP001",
-      name: "グローバルサプライチェーン構築",
-      partner: "日立製作所",
-      partnerColor: "#1E40AF",
-      closeDate: "2025-06-30",
-      stagePct: 75,
-      stageColor: "bg-green-600",
-      amount: 12.5,
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-    },
-    {
-      id: "OPP002",
-      name: "AI駆動型予測保守システム",
-      partner: "日立製作所",
-      partnerColor: "#1E40AF",
-      closeDate: "2025-08-15",
-      stagePct: 50,
-      stageColor: "bg-yellow-500",
-      amount: 8.3,
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-    },
-    {
-      id: "OPP003",
-      name: "建設機械リース拡大",
-      partner: "日立建機",
-      partnerColor: "#3B82F6",
-      closeDate: "2025-07-22",
-      stagePct: 25,
-      stageColor: "bg-blue-500",
-      amount: 15.7,
-      ourCompany: "メタルワン",
-      ourCompanyColor: "#F97316",
-    },
-    {
-      id: "OPP004",
-      name: "特殊合金共同開発",
-      partner: "日立金属",
-      partnerColor: "#8B5CF6",
-      closeDate: "2025-09-10",
-      stagePct: 10,
-      stageColor: "bg-indigo-500",
-      amount: 6.2,
-      ourCompany: "メタルワン",
-      ourCompanyColor: "#F97316",
-    },
-    {
-      id: "OPP005",
-      name: "環境配慮型素材研究",
-      partner: "日立化成",
-      partnerColor: "#EC4899",
-      closeDate: "2025-10-05",
-      stagePct: 30,
-      stageColor: "bg-blue-500",
-      amount: 9.8,
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-    },
-  ]
+  useEffect(() => {
+    // 選択されたグループに属する企業のIDを取得
+    const groupCompanyIds = partnerCompanies
+      .filter((company) => company.group_id === selectedGroupId)
+      .map((company) => company.id)
+
+    // グループ企業に関連する商談をフィルタリング
+    const filteredOpportunities = opportunities.filter((opp) => groupCompanyIds.includes(opp.partner_company_id))
+
+    // データを整形
+    const formattedOpportunities = filteredOpportunities.map((opp) => {
+      const partnerCompany = getCompanyById(opp.partner_company_id)
+      const ourCompany = getCompanyById(opp.our_company_id)
+
+      return {
+        id: opp.id,
+        name: opp.name,
+        partner: partnerCompany?.name || "",
+        partnerColor: partnerCompany?.color_hex || "#000000",
+        ourCompany: ourCompany?.name || "",
+        ourCompanyColor: ourCompany?.color_hex || "#000000",
+        closeDate: opp.close_date,
+        stagePct: opp.stage_pct,
+        stageColor: getStageColor(opp.stage_pct),
+        amount: opp.amount_oku,
+        description: opp.description,
+        createdAt: opp.created_at,
+        updatedAt: opp.updated_at,
+        assignedTo: opp.assigned_to,
+        nextAction: opp.next_action,
+        nextActionDate: opp.next_action_date,
+      }
+    })
+
+    setGroupOpportunities(formattedOpportunities)
+  }, [selectedGroupId])
+
+  if (groupOpportunities.length === 0) {
+    return (
+      <div className="rounded-2xl shadow bg-white p-6">
+        <h2 className="text-xl font-semibold mb-4">商談</h2>
+        <div className="text-center py-8 text-gray-500">このグループの商談データがありません</div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -92,7 +81,7 @@ export function OpportunityTable() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {opportunities.map((opp) => (
+            {groupOpportunities.map((opp) => (
               <tr key={opp.id} className="hover:bg-sky-50 cursor-pointer" onClick={() => setSelectedOpportunity(opp)}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{opp.name}</div>

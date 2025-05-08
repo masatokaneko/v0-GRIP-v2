@@ -37,7 +37,12 @@ export default function Home() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        selectedGroup={selectedGroup}
+        setSelectedGroup={setSelectedGroup}
+      />
       <main className="flex-1 overflow-auto p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>

@@ -1,71 +1,79 @@
-export function OwnerHierarchy() {
+"use client"
+
+import { useEffect, useState } from "react"
+import { owners, getCompanyById } from "@/lib/data"
+
+interface OwnerHierarchyProps {
+  selectedGroupId: string
+}
+
+export function OwnerHierarchy({ selectedGroupId }: OwnerHierarchyProps) {
+  const [groupOwners, setGroupOwners] = useState<any[]>([])
+
+  useEffect(() => {
+    // 選択されたグループIDに基づいてオーナーをフィルタリング
+    const filteredOwners = owners.filter((owner) => owner.group_id === selectedGroupId)
+
+    // オーナーレベルでソート (lead -> group -> company)
+    const sortedOwners = [...filteredOwners].sort((a, b) => {
+      const levelOrder = { lead: 0, group: 1, company: 2 }
+      return levelOrder[a.owner_level as keyof typeof levelOrder] - levelOrder[b.owner_level as keyof typeof levelOrder]
+    })
+
+    setGroupOwners(sortedOwners)
+  }, [selectedGroupId])
+
+  if (groupOwners.length === 0) {
+    return (
+      <div className="rounded-2xl shadow bg-white p-6">
+        <h2 className="text-xl font-semibold mb-4">オーナーシップ構造</h2>
+        <div className="text-center py-8 text-gray-500">このグループのオーナーシップデータがありません</div>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-2xl shadow bg-white p-6">
       <h2 className="text-xl font-semibold mb-4">オーナーシップ構造</h2>
       <div className="space-y-3">
-        {/* Lead Owner */}
-        <div className="p-3 rounded-lg border border-gray-200 flex items-center">
-          <div className="w-2 h-10 bg-[#002B5B] rounded mr-3"></div>
-          <div>
-            <div className="font-medium">佐藤 一郎</div>
-            <div className="text-sm text-gray-500">リードオーナー • 三菱商事 • 取締役副社長</div>
-          </div>
-        </div>
+        {groupOwners.map((owner) => {
+          const ourCompany = getCompanyById(owner.our_company_id)
+          const partnerCompany = owner.partner_company_id ? getCompanyById(owner.partner_company_id) : null
 
-        {/* Group Owner */}
-        <div className="p-3 rounded-lg border border-gray-200 flex items-center ml-4">
-          <div className="w-2 h-10 bg-[#F97316] rounded mr-3"></div>
-          <div>
-            <div className="font-medium">田中 次郎</div>
-            <div className="text-sm text-gray-500">グループオーナー • メタルワン • 営業本部長</div>
-          </div>
-        </div>
+          // オーナーレベルに基づいてマージンを設定
+          const marginClass = owner.owner_level === "lead" ? "" : owner.owner_level === "group" ? "ml-4" : "ml-8"
 
-        {/* Company Owner with gradient */}
-        <div className="p-3 rounded-lg border border-gray-200 flex items-center ml-8">
-          <div
-            className="w-2 h-10 rounded mr-3"
-            style={{ background: "linear-gradient(135deg, #F97316, #1E40AF)" }}
-          ></div>
-          <div>
-            <div className="font-medium">渡辺 六郎</div>
-            <div className="text-sm text-gray-500">
-              カンパニーオーナー • メタルワン ↔ 日立製作所 • アカウントマネージャー
+          // オーナーレベルに基づいて色を設定
+          let colorStyle = {}
+          if (owner.owner_level === "lead") {
+            colorStyle = { backgroundColor: "#002B5B" }
+          } else if (owner.owner_level === "group") {
+            colorStyle = { backgroundColor: ourCompany?.color_hex || "#F97316" }
+          } else if (owner.owner_level === "company") {
+            colorStyle = {
+              background: `linear-gradient(135deg, ${ourCompany?.color_hex || "#F97316"}, ${partnerCompany?.color_hex || "#1E40AF"})`,
+            }
+          }
+
+          return (
+            <div key={owner.id} className={`p-3 rounded-lg border border-gray-200 flex items-center ${marginClass}`}>
+              <div className="w-2 h-10 rounded mr-3" style={colorStyle}></div>
+              <div>
+                <div className="font-medium">{owner.user}</div>
+                <div className="text-sm text-gray-500">
+                  {owner.owner_level === "lead" && "リードオーナー"}
+                  {owner.owner_level === "group" && "グループオーナー"}
+                  {owner.owner_level === "company" && "カンパニーオーナー"}
+                  {" • "}
+                  {ourCompany?.name}
+                  {owner.partner_company_id && ` ↔ ${partnerCompany?.name}`}
+                  {" • "}
+                  {owner.title}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Additional Group Owner */}
-        <div className="p-3 rounded-lg border border-gray-200 flex items-center ml-4">
-          <div className="w-2 h-10 bg-[#EF4444] rounded mr-3"></div>
-          <div>
-            <div className="font-medium">山田 三郎</div>
-            <div className="text-sm text-gray-500">グループオーナー • 三菱商事 • 事業開発部長</div>
-          </div>
-        </div>
-
-        {/* Additional Company Owners */}
-        <div className="p-3 rounded-lg border border-gray-200 flex items-center ml-8">
-          <div
-            className="w-2 h-10 rounded mr-3"
-            style={{ background: "linear-gradient(135deg, #EF4444, #3B82F6)" }}
-          ></div>
-          <div>
-            <div className="font-medium">鈴木 四郎</div>
-            <div className="text-sm text-gray-500">カンパニーオーナー • 三菱商事 ↔ 日立建機 • シニアマネージャー</div>
-          </div>
-        </div>
-
-        <div className="p-3 rounded-lg border border-gray-200 flex items-center ml-8">
-          <div
-            className="w-2 h-10 rounded mr-3"
-            style={{ background: "linear-gradient(135deg, #EF4444, #8B5CF6)" }}
-          ></div>
-          <div>
-            <div className="font-medium">高橋 五郎</div>
-            <div className="text-sm text-gray-500">カンパニーオーナー • 三菱商事 ↔ 日立金属 • マネージャー</div>
-          </div>
-        </div>
+          )
+        })}
       </div>
     </div>
   )

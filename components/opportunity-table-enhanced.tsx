@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown, Eye } from "lucide-react"
 import { OpportunityDetail } from "@/components/opportunity-detail"
+import { opportunities, getCompanyById, getStageColor, getStageLabel } from "@/lib/data"
 
 interface Opportunity {
   id: string
@@ -19,103 +20,41 @@ interface Opportunity {
   stagePct: number
   stageColor: string
   amount: number
+  description?: string
+  createdAt?: string
+  updatedAt?: string
+  assignedTo?: string
+  nextAction?: string
+  nextActionDate?: string
 }
 
 export function OpportunityTableEnhanced() {
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null)
 
-  const opportunities: Opportunity[] = [
-    {
-      id: "OPP001",
-      name: "グローバルサプライチェーン構築",
-      partner: "日立製作所",
-      partnerColor: "#1E40AF",
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-      closeDate: "2025-06-30",
-      stagePct: 75,
-      stageColor: "bg-green-600",
-      amount: 12.5,
-    },
-    {
-      id: "OPP002",
-      name: "AI駆動型予測保守システム",
-      partner: "日立製作所",
-      partnerColor: "#1E40AF",
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-      closeDate: "2025-08-15",
-      stagePct: 50,
-      stageColor: "bg-yellow-500",
-      amount: 8.3,
-    },
-    {
-      id: "OPP003",
-      name: "建設機械リース拡大",
-      partner: "日立建機",
-      partnerColor: "#3B82F6",
-      ourCompany: "メタルワン",
-      ourCompanyColor: "#F97316",
-      closeDate: "2025-07-22",
-      stagePct: 25,
-      stageColor: "bg-blue-500",
-      amount: 15.7,
-    },
-    {
-      id: "OPP004",
-      name: "特殊合金共同開発",
-      partner: "日立金属",
-      partnerColor: "#8B5CF6",
-      ourCompany: "メタルワン",
-      ourCompanyColor: "#F97316",
-      closeDate: "2025-09-10",
-      stagePct: 10,
-      stageColor: "bg-indigo-500",
-      amount: 6.2,
-    },
-    {
-      id: "OPP005",
-      name: "環境配慮型素材研究",
-      partner: "日立化成",
-      partnerColor: "#EC4899",
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-      closeDate: "2025-10-05",
-      stagePct: 30,
-      stageColor: "bg-blue-500",
-      amount: 9.8,
-    },
-    {
-      id: "OPP006",
-      name: "スマートファクトリー導入",
-      partner: "日立製作所",
-      partnerColor: "#1E40AF",
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-      closeDate: "2025-11-20",
-      stagePct: 15,
-      stageColor: "bg-indigo-500",
-      amount: 20.3,
-    },
-    {
-      id: "OPP007",
-      name: "物流最適化プロジェクト",
-      partner: "日立物流",
-      partnerColor: "#14B8A6",
-      ourCompany: "メタルワン",
-      ourCompanyColor: "#F97316",
-      closeDate: "2025-08-30",
-      stagePct: 60,
-      stageColor: "bg-yellow-500",
-      amount: 7.5,
-    },
-  ]
+  // データを整形
+  const formattedOpportunities: Opportunity[] = opportunities.map((opp) => {
+    const partnerCompany = getCompanyById(opp.partner_company_id)
+    const ourCompany = getCompanyById(opp.our_company_id)
 
-  const getStageLabel = (stagePct: number) => {
-    if (stagePct < 30) return "初期段階"
-    if (stagePct < 60) return "中間段階"
-    return "最終段階"
-  }
+    return {
+      id: opp.id,
+      name: opp.name,
+      partner: partnerCompany?.name || "",
+      partnerColor: partnerCompany?.color_hex || "#000000",
+      ourCompany: ourCompany?.name || "",
+      ourCompanyColor: ourCompany?.color_hex || "#000000",
+      closeDate: opp.close_date,
+      stagePct: opp.stage_pct,
+      stageColor: getStageColor(opp.stage_pct),
+      amount: opp.amount_oku,
+      description: opp.description,
+      createdAt: opp.created_at,
+      updatedAt: opp.updated_at,
+      assignedTo: opp.assigned_to,
+      nextAction: opp.next_action,
+      nextActionDate: opp.next_action_date,
+    }
+  })
 
   const columns: ColumnDef<Opportunity>[] = [
     {
@@ -224,7 +163,7 @@ export function OpportunityTableEnhanced() {
     <div className="space-y-6">
       <DataTable
         columns={columns}
-        data={opportunities}
+        data={formattedOpportunities}
         searchColumn="name"
         searchPlaceholder="商談名で検索..."
         onRowClick={(row) => setSelectedOpportunity(row.original)}

@@ -1,61 +1,53 @@
-export function TransactionHistory() {
-  const transactions = [
-    {
-      id: "TX001",
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-      partnerCompany: "日立製作所",
-      partnerCompanyColor: "#1E40AF",
-      fiscalYear: "2024",
-      sales: 14.2,
-      cost: 11.8,
-      summary: "システム連携プロジェクト",
-    },
-    {
-      id: "TX002",
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-      partnerCompany: "日立製作所",
-      partnerCompanyColor: "#1E40AF",
-      fiscalYear: "2023",
-      sales: 12.8,
-      cost: 10.5,
-      summary: "デジタルトランスフォーメーション支援",
-    },
-    {
-      id: "TX003",
-      ourCompany: "メタルワン",
-      ourCompanyColor: "#F97316",
-      partnerCompany: "日立建機",
-      partnerCompanyColor: "#3B82F6",
-      fiscalYear: "2024",
-      sales: 18.5,
-      cost: 15.2,
-      summary: "建設機械部品供給",
-    },
-    {
-      id: "TX004",
-      ourCompany: "メタルワン",
-      ourCompanyColor: "#F97316",
-      partnerCompany: "日立金属",
-      partnerCompanyColor: "#8B5CF6",
-      fiscalYear: "2024",
-      sales: 9.3,
-      cost: 7.6,
-      summary: "特殊合金取引",
-    },
-    {
-      id: "TX005",
-      ourCompany: "三菱商事",
-      ourCompanyColor: "#EF4444",
-      partnerCompany: "日立化成",
-      partnerCompanyColor: "#EC4899",
-      fiscalYear: "2024",
-      sales: 7.8,
-      cost: 6.1,
-      summary: "化学製品取引",
-    },
-  ]
+"use client"
+
+import { useEffect, useState } from "react"
+import { transactions, getCompanyById, partnerCompanies } from "@/lib/data"
+
+interface TransactionHistoryProps {
+  selectedGroupId: string
+}
+
+export function TransactionHistory({ selectedGroupId }: TransactionHistoryProps) {
+  const [groupTransactions, setGroupTransactions] = useState<any[]>([])
+
+  useEffect(() => {
+    // 選択されたグループに属する企業のIDを取得
+    const groupCompanyIds = partnerCompanies
+      .filter((company) => company.group_id === selectedGroupId)
+      .map((company) => company.id)
+
+    // グループ企業に関連する取引をフィルタリング
+    const filteredTransactions = transactions.filter((tx) => groupCompanyIds.includes(tx.partner_company_id))
+
+    // データを整形
+    const formattedTransactions = filteredTransactions.map((tx) => {
+      const partnerCompany = getCompanyById(tx.partner_company_id)
+      const ourCompany = getCompanyById(tx.our_company_id)
+
+      return {
+        id: tx.id,
+        ourCompany: ourCompany?.name || "",
+        ourCompanyColor: ourCompany?.color_hex || "#000000",
+        partnerCompany: partnerCompany?.name || "",
+        partnerCompanyColor: partnerCompany?.color_hex || "#000000",
+        fiscalYear: tx.fy,
+        sales: tx.sales_oku,
+        cost: tx.cost_oku,
+        summary: tx.summary,
+      }
+    })
+
+    setGroupTransactions(formattedTransactions)
+  }, [selectedGroupId])
+
+  if (groupTransactions.length === 0) {
+    return (
+      <div className="rounded-2xl shadow bg-white p-6">
+        <h2 className="text-xl font-semibold mb-4">取引履歴</h2>
+        <div className="text-center py-8 text-gray-500">このグループの取引履歴データがありません</div>
+      </div>
+    )
+  }
 
   return (
     <div className="rounded-2xl shadow overflow-hidden">
@@ -77,7 +69,7 @@ export function TransactionHistory() {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {transactions.map((tx) => (
+          {groupTransactions.map((tx) => (
             <tr key={tx.id} className="hover:bg-sky-50">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
