@@ -1,7 +1,7 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import React from "react"
+import { useState, useEffect } from "react"
 import {
   ChevronDown,
   ChevronRight,
@@ -19,6 +19,8 @@ import {
   Briefcase,
   GitBranch,
   GitMerge,
+  Building,
+  BarChart,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -43,9 +45,13 @@ export type AdminMenuItemId =
   | "legacy_system_connection"
   | "data_sync_settings"
   | "organization_management"
+  | "enterprise_management"
   | "group_company_settings"
   | "department_association"
   | "organization_chart"
+  | "company_list"
+  | "capital_relations"
+  | "organization_view"
 
 interface MenuItemProps {
   id: AdminMenuItemId
@@ -56,11 +62,50 @@ interface MenuItemProps {
   level?: number
   activeItem: AdminMenuItemId | null
   onSelectItem: (id: AdminMenuItemId) => void
+  defaultOpen?: boolean
 }
 
-const MenuItem = ({ id, title, icon, permission, children, level = 0, activeItem, onSelectItem }: MenuItemProps) => {
-  const [open, setOpen] = useState(false)
+const MenuItem = ({
+  id,
+  title,
+  icon,
+  permission,
+  children,
+  level = 0,
+  activeItem,
+  onSelectItem,
+  defaultOpen = false,
+}: MenuItemProps) => {
+  // アクティブな項目の親メニューを自動的に開くための状態
+  const [open, setOpen] = useState(defaultOpen)
   const { hasPermission } = usePermissions()
+
+  // アクティブな項目またはその子孫がアクティブな場合、メニューを開く
+  useEffect(() => {
+    const isActiveOrHasActiveChild =
+      activeItem === id ||
+      (children &&
+        React.Children.toArray(children).some((child) => {
+          if (React.isValidElement(child)) {
+            const childProps = child.props as MenuItemProps
+            return (
+              childProps.id === activeItem ||
+              (childProps.children &&
+                React.Children.toArray(childProps.children).some((grandChild) => {
+                  if (React.isValidElement(grandChild)) {
+                    return (grandChild.props as MenuItemProps).id === activeItem
+                  }
+                  return false
+                }))
+            )
+          }
+          return false
+        }))
+
+    if (isActiveOrHasActiveChild) {
+      setOpen(true)
+    }
+  }, [activeItem, id, children])
 
   // 権限チェック
   if (permission && !hasPermission(permission)) {
@@ -146,6 +191,7 @@ export function AdminMenu({ activeItem, onSelectItem }: AdminMenuProps) {
       <div className="px-3 py-2">
         <h3 className="mb-2 text-xs font-semibold uppercase text-gray-500">管理者メニュー</h3>
         <nav className="space-y-1">
+          {/* 管理者設定メニュー */}
           <MenuItem
             id="admin_settings"
             title="管理者設定"
@@ -286,35 +332,65 @@ export function AdminMenu({ activeItem, onSelectItem }: AdminMenuProps) {
               level={1}
               activeItem={activeItem}
               onSelectItem={onSelectItem}
-            >
-              <MenuItem
-                id="group_company_settings"
-                title="グループ企業設定"
-                icon={<Briefcase className="h-4 w-4" />}
-                permission="group_company_settings"
-                level={2}
-                activeItem={activeItem}
-                onSelectItem={onSelectItem}
-              />
-              <MenuItem
-                id="department_association"
-                title="部門間関連付け"
-                icon={<GitBranch className="h-4 w-4" />}
-                permission="department_association"
-                level={2}
-                activeItem={activeItem}
-                onSelectItem={onSelectItem}
-              />
-              <MenuItem
-                id="organization_chart"
-                title="組織図表示"
-                icon={<GitMerge className="h-4 w-4" />}
-                permission="organization_chart"
-                level={2}
-                activeItem={activeItem}
-                onSelectItem={onSelectItem}
-              />
-            </MenuItem>
+            />
+          </MenuItem>
+
+          {/* 企業管理メニュー - 新しいルートレベルメニュー */}
+          <MenuItem
+            id="enterprise_management"
+            title="企業管理"
+            icon={<Building className="h-5 w-5" />}
+            activeItem={activeItem}
+            onSelectItem={onSelectItem}
+          >
+            <MenuItem
+              id="group_company_settings"
+              title="グループ企業設定"
+              icon={<Briefcase className="h-4 w-4" />}
+              level={1}
+              activeItem={activeItem}
+              onSelectItem={onSelectItem}
+            />
+            <MenuItem
+              id="department_association"
+              title="部門間関連付け"
+              icon={<GitBranch className="h-4 w-4" />}
+              level={1}
+              activeItem={activeItem}
+              onSelectItem={onSelectItem}
+            />
+            <MenuItem
+              id="organization_chart"
+              title="組織図表示"
+              icon={<GitMerge className="h-4 w-4" />}
+              level={1}
+              activeItem={activeItem}
+              onSelectItem={onSelectItem}
+            />
+            <MenuItem
+              id="company_list"
+              title="企業一覧"
+              icon={<Building className="h-4 w-4" />}
+              level={1}
+              activeItem={activeItem}
+              onSelectItem={onSelectItem}
+            />
+            <MenuItem
+              id="capital_relations"
+              title="資本関係管理"
+              icon={<GitBranch className="h-4 w-4" />}
+              level={1}
+              activeItem={activeItem}
+              onSelectItem={onSelectItem}
+            />
+            <MenuItem
+              id="organization_view"
+              title="組織図表示"
+              icon={<BarChart className="h-4 w-4" />}
+              level={1}
+              activeItem={activeItem}
+              onSelectItem={onSelectItem}
+            />
           </MenuItem>
         </nav>
       </div>

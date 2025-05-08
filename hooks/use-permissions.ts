@@ -74,6 +74,10 @@ export function usePermissions() {
   // 特定の権限を持っているかチェックする関数
   const hasPermission = (permission: Permission): boolean => {
     if (!permissions) return false
+
+    // admin権限を持っている場合は全ての権限を持っているとみなす
+    if (permissions.permissions.includes("admin")) return true
+
     return permissions.permissions.includes(permission)
   }
 

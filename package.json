@@ -59,7 +59,8 @@
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
     "@tanstack/react-table": "latest",
-    "chart.js": "latest"
+    "chart.js": "latest",
+    "reactflow": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
