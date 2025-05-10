@@ -17,6 +17,7 @@ import {
   MapIcon as HeatMap,
   LineChart,
   List,
+  Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { partnerGroups } from "@/lib/data"
@@ -36,6 +37,8 @@ import { TransactionHeatmap } from "@/components/transaction-overview/transactio
 import { TransactionTimeline } from "@/components/transaction-overview/transaction-timeline"
 import { TransactionList } from "@/components/transaction-overview/transaction-list"
 import { AccountOwner } from "@/components/account-owner"
+// 1. AIアシスタントコンポーネントをインポート
+import { AIAssistant } from "@/components/ai-assistant"
 
 interface SidebarProps {
   activeTab: string
@@ -78,7 +81,9 @@ export function Sidebar({
     }
   }, [searchTerm])
 
+  // 2. tabs配列を更新して「AI360°」タブを追加（取引概観の前に）
   const tabs = [
+    { id: "ai_assistant", label: "AI360°", icon: Sparkles },
     { id: "transaction_overview", label: "取引概観", icon: BarChart, hasSubMenu: true },
     { id: "owners", label: "アカウントオーナー", icon: Users },
     { id: "executives", label: "エグゼクティブ", icon: Users },
@@ -132,6 +137,8 @@ export function Sidebar({
     }
 
     // 取引概観タブが選択されている場合
+    // 3. renderMainContent関数を更新して、AIアシスタントタブが選択されたときの処理を追加
+    // renderMainContent関数内の switch文の先頭に以下を追加
     if (activeTab === "transaction_overview") {
       switch (activeSubTab) {
         case "ex_summary":
@@ -151,6 +158,8 @@ export function Sidebar({
 
     // 通常のタブが選択されている場合
     switch (activeTab) {
+      case "ai_assistant":
+        return <AIAssistant selectedGroupId={selectedGroupId} selectedGroup={selectedGroup} />
       case "owners":
         return <AccountOwner selectedGroupId={selectedGroupId} />
       case "executives":
