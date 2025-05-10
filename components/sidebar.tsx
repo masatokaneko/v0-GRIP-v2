@@ -24,7 +24,6 @@ import { AdminMenu, type AdminMenuItemId } from "@/components/admin-menu"
 import { AdminContent } from "@/components/admin/admin-content"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { GlobalSearch } from "@/components/global-search"
-import { OwnerHierarchy } from "@/components/owner-hierarchy"
 import { AccountExecutives } from "@/components/account-executives"
 import { OpportunityTable } from "@/components/opportunity-table"
 import { TransactionHistory } from "@/components/transaction-history"
@@ -36,6 +35,7 @@ import { TransactionFlow } from "@/components/transaction-overview/transaction-f
 import { TransactionHeatmap } from "@/components/transaction-overview/transaction-heatmap"
 import { TransactionTimeline } from "@/components/transaction-overview/transaction-timeline"
 import { TransactionList } from "@/components/transaction-overview/transaction-list"
+import { AccountOwner } from "@/components/account-owner"
 
 interface SidebarProps {
   activeTab: string
@@ -80,7 +80,7 @@ export function Sidebar({
 
   const tabs = [
     { id: "transaction_overview", label: "取引概観", icon: BarChart, hasSubMenu: true },
-    { id: "owners", label: "オーナー", icon: Users },
+    { id: "owners", label: "アカウントオーナー", icon: Users },
     { id: "executives", label: "エグゼクティブ", icon: Users },
     { id: "opportunities", label: "商談", icon: TrendingUp },
     { id: "transactions", label: "取引履歴", icon: BarChart2 },
@@ -152,7 +152,7 @@ export function Sidebar({
     // 通常のタブが選択されている場合
     switch (activeTab) {
       case "owners":
-        return <OwnerHierarchy selectedGroupId={selectedGroupId} />
+        return <AccountOwner selectedGroupId={selectedGroupId} />
       case "executives":
         return <AccountExecutives selectedGroupId={selectedGroupId} />
       case "opportunities":
@@ -162,7 +162,7 @@ export function Sidebar({
       case "summary":
         return <ExecutiveSummary selectedGroupId={selectedGroupId} />
       default:
-        return <OwnerHierarchy selectedGroupId={selectedGroupId} />
+        return <AccountOwner selectedGroupId={selectedGroupId} />
     }
   }
 
